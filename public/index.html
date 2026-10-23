@@ -1,0 +1,1713 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A2A Digital Twin | Command Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Prompt:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070712;
+  --bg-card: rgba(16, 15, 30, 0.85);
+  --border-frame: #4a3b69;
+  --border-gold: #c59b3f;
+  --gold-glow: rgba(197, 155, 63, 0.4);
+  --purple-glow: rgba(147, 51, 234, 0.5);
+  --cyan-glow: rgba(56, 189, 248, 0.5);
+  --green-glow: rgba(34, 197, 94, 0.5);
+  --orange-glow: rgba(249, 115, 22, 0.5);
+  --text-main: #f3f0ff;
+  --text-muted: #9c97b8;
+  --text-gold: #fcd34d;
+  --hp-red: #ef4444;
+  --mp-cyan: #06b6d4;
+  --font-title: 'Cinzel', serif;
+  --font-tech: 'Rajdhani', -apple-system, sans-serif;
+  --font-thai: 'Prompt', -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(93, 44, 153, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 15% 55%, rgba(16, 185, 129, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 55%, rgba(249, 115, 22, 0.15) 0%, transparent 45%),
+    linear-gradient(180deg, #090814 0%, #05050b 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: var(--font-thai);
+  min-height: 100vh;
+  padding: 16px 12px 60px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Background Animated Canvas & Arcane Circles */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.arena-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Sound & Control header bar */
+.top-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.audio-btn, .mode-badge {
+  background: rgba(20, 18, 38, 0.8);
+  border: 1px solid var(--border-frame);
+  color: var(--text-muted);
+  font-family: var(--font-tech);
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.audio-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--text-gold);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.mode-badge {
+  color: #fbbf24;
+  border-color: #b45309;
+  background: rgba(180, 83, 9, 0.2);
+}
+.mode-badge[hidden] { display: none; }
+
+/* =========================================================
+   HEADER FRAME: ORNATE RPG FANTASY HUD
+   ========================================================= */
+.rpg-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(25, 21, 46, 0.95) 0%, rgba(13, 11, 25, 0.98) 100%);
+  border: 2px solid #5a4b78;
+  border-radius: 12px;
+  padding: 24px 20px 18px;
+  box-shadow: 
+    0 0 0 1px rgba(10, 8, 20, 0.9),
+    0 12px 36px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 20px rgba(78, 48, 128, 0.25);
+  margin-bottom: 24px;
+}
+
+/* Ornate corner gemstones and filigree */
+.rpg-frame::before, .rpg-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #f472b6 20%, #9333ea 70%, #3b0764 100%);
+  border: 2px solid #d4af37;
+  border-radius: 3px;
+  box-shadow: 0 0 8px #c084fc, inset 0 0 3px #fff;
+  z-index: 2;
+}
+.rpg-frame::before { top: -6px; left: -6px; }
+.rpg-frame::after { top: -6px; right: -6px; }
+
+.corner-gem-bl, .corner-gem-br {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #f472b6 20%, #9333ea 70%, #3b0764 100%);
+  border: 2px solid #d4af37;
+  border-radius: 3px;
+  box-shadow: 0 0 8px #c084fc, inset 0 0 3px #fff;
+  z-index: 2;
+}
+.corner-gem-bl { bottom: -6px; left: -6px; }
+.corner-gem-br { bottom: -6px; right: -6px; }
+
+/* Sculpted Title Plaque */
+.title-plaque {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #2b223d 0%, #151124 100%);
+  border: 1.5px solid #a88132;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.8),
+    0 0 14px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 235, 160, 0.3);
+  padding: 4px 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%);
+}
+.title-plaque h1 {
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: #f7e7b4;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(247, 231, 180, 0.6), 0 2px 4px #000;
+}
+.title-plaque-gem {
+  width: 9px;
+  height: 9px;
+  background: #38bdf8;
+  border: 1px solid #bae6fd;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px #38bdf8;
+  margin: 0 8px;
+}
+
+/* Command Prompt Input Area */
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+}
+.search-input-wrap {
+  flex: 1;
+  position: relative;
+}
+.search-input {
+  width: 100%;
+  height: 48px;
+  background: #0d0c1c;
+  border: 1.5px solid #4a3e66;
+  border-radius: 10px;
+  padding: 0 18px;
+  color: #fff;
+  font-family: var(--font-thai);
+  font-size: 15px;
+  outline: none;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
+  transition: all 0.25s ease;
+}
+.search-input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 
+    inset 0 2px 6px rgba(0,0,0,0.8),
+    0 0 16px rgba(139, 92, 246, 0.45);
+}
+.search-input::placeholder {
+  color: #6d688b;
+}
+
+.submit-btn {
+  height: 48px;
+  padding: 0 26px;
+  background: linear-gradient(180deg, #2b6cb0 0%, #1a365d 100%);
+  border: 1.5px solid #63b3ed;
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: var(--font-thai);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 14px rgba(26, 54, 93, 0.6),
+    0 0 12px rgba(66, 153, 225, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.submit-btn:hover {
+  background: linear-gradient(180deg, #3182ce 0%, #2b6cb0 100%);
+  border-color: #90cdf4;
+  box-shadow: 
+    0 4px 18px rgba(66, 153, 225, 0.6),
+    0 0 18px rgba(99, 179, 237, 0.6),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  transform: translateY(-1px);
+}
+.submit-btn:active {
+  transform: translateY(1px);
+}
+
+/* Prompt Chips / Suggested Quests */
+.chips-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.quest-chip {
+  background: linear-gradient(180deg, #1e1933 0%, #120f21 100%);
+  border: 1.5px solid #3d3455;
+  border-radius: 8px;
+  padding: 6px 14px;
+  color: #d1cbe8;
+  font-family: var(--font-thai);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.quest-chip:hover {
+  border-color: #a78bfa;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.4);
+}
+.quest-chip.active-quest {
+  border-color: #f59e0b;
+  color: #fef3c7;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5), inset 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
+/* Message / Toast bar */
+#msg-toast {
+  min-height: 22px;
+  font-size: 13px;
+  color: #f87171;
+  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* =========================================================
+   BATTLE ARENA & TOPOLOGY DISPLAY
+   ========================================================= */
+.arena-card {
+  position: relative;
+  background: radial-gradient(circle at 50% 50%, rgba(20, 16, 42, 0.9) 0%, rgba(10, 8, 20, 0.98) 100%);
+  border: 1.5px solid #3b2e59;
+  border-radius: 16px;
+  padding: 30px 20px 24px;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(90, 40, 150, 0.2);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+/* Arcane summoning circle graphics */
+.arcane-backdrop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 900px;
+  height: 500px;
+  pointer-events: none;
+  opacity: 0.35;
+  z-index: 1;
+}
+
+/* Interactive agents layout */
+.agents-grid {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1.2fr 1.6fr 1.2fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .agents-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* General Agent Pod Styling */
+.agent-pod {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Status Plaque (pill badge with glowing border) */
+.status-plaque {
+  background: rgba(14, 12, 28, 0.92);
+  border: 1.5px solid #22c55e;
+  border-radius: 9px;
+  padding: 5px 14px;
+  text-align: center;
+  margin-bottom: 14px;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35), inset 0 0 6px rgba(34, 197, 94, 0.15);
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+.status-plaque.status-work {
+  border-color: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}
+.status-plaque.status-wait {
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+}
+.status-plaque.status-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+}
+.status-plaque.status-idle {
+  border-color: #64748b;
+  box-shadow: 0 0 8px rgba(100, 116, 139, 0.2);
+}
+
+.status-header-text {
+  font-family: var(--font-tech);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.status-sub-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+/* Avatar circular frame with magic aura */
+.avatar-halo-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orchestrator-pod .avatar-halo-wrap {
+  width: 160px;
+  height: 160px;
+}
+
+.avatar-halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: rotate-halo 12s linear infinite;
+  opacity: 0.8;
+}
+.aura-purple {
+  border: 2px dashed #a855f7;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.5), inset 0 0 15px rgba(168, 85, 247, 0.3);
+}
+.aura-green {
+  border: 2px dashed #22c55e;
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.5), inset 0 0 15px rgba(34, 197, 94, 0.3);
+}
+.aura-orange {
+  border: 2px dashed #f97316;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.5), inset 0 0 15px rgba(249, 115, 22, 0.3);
+}
+
+.avatar-img-box {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #d4af37;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.floating-anim {
+  animation: hero-hover 3.6s ease-in-out infinite;
+}
+
+@keyframes hero-hover {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes rotate-halo {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Agent Title & Identity Labels */
+.agent-title {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  text-shadow: 0 2px 6px #000;
+}
+.orchestrator-pod .agent-title {
+  color: #c084fc;
+  font-size: 21px;
+}
+.mist-pod .agent-title {
+  color: #4ade80;
+}
+.central-pod .agent-title {
+  color: #fb923c;
+}
+
+.agent-thai-name {
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+.agent-class {
+  font-family: var(--font-tech);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* RPG Health / Mana / Stat bars */
+.rpg-stats-card {
+  background: rgba(12, 10, 24, 0.9);
+  border: 1px solid #332a4d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.stat-bar-row:last-child { margin-bottom: 0; }
+.stat-label {
+  font-family: var(--font-tech);
+  font-size: 12px;
+  font-weight: 700;
+  width: 22px;
+}
+.stat-label.hp { color: #f87171; }
+.stat-label.mp { color: #38bdf8; }
+
+.stat-bar-outer {
+  flex: 1;
+  height: 8px;
+  background: #17152b;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.stat-bar-inner {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+.stat-bar-inner.hp-bar {
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+.stat-bar-inner.mp-bar {
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+.stat-bar-inner.green-bar {
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.rpg-badge-details {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-tech);
+  font-size: 11px;
+  color: #cbd5e1;
+  margin-top: 4px;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  padding-top: 4px;
+}
+
+/* MCP Tool Nodes */
+.mcp-node-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(20, 18, 38, 0.95) 0%, rgba(12, 10, 22, 0.95) 100%);
+  border: 1.5px solid #3b3356;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-top: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+  transition: all 0.3s ease;
+  position: relative;
+  max-width: 220px;
+  width: 100%;
+}
+.mcp-node-box.active-tool {
+  border-color: #22d3ee;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
+  animation: tool-pulse 1s infinite alternate;
+}
+@keyframes tool-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.03); }
+}
+
+.mcp-icon-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1.5px solid #d4af37;
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(0,0,0,0.8);
+}
+.mcp-info-title {
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+.mcp-info-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.mcp-stats-pill {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  color: #38bdf8;
+  margin-top: 2px;
+}
+
+/* =========================================================
+   MANA LINKS: LIGHTNING & SPARK EFFECT CANVAS
+   ========================================================= */
+#mana-links-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.mana-link-path {
+  fill: none;
+  stroke-linecap: round;
+}
+.mana-link-glow {
+  stroke-width: 4;
+  opacity: 0.5;
+  filter: blur(3px);
+}
+.mana-link-core {
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+  animation: dash 1s linear infinite;
+}
+@keyframes dash {
+  to { stroke-dashoffset: -18; }
+}
+
+.mana-link-badge {
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  fill: #e2e8f0;
+  filter: drop-shadow(0 0 4px #000);
+}
+
+/* =========================================================
+   COMBAT LOG & REPORT SECTION
+   ========================================================= */
+.logs-section {
+  margin-top: 24px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.section-header h2 {
+  font-family: var(--font-title);
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+.section-header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, #4c3d6c 0%, transparent 100%);
+}
+
+.log-box {
+  background: rgba(14, 12, 28, 0.9);
+  border: 1px solid #33284d;
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+}
+.log-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn 0.25s ease-out;
+}
+.log-row:first-child { border-top: none; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.log-time {
+  font-family: var(--font-tech);
+  color: #64748b;
+  font-size: 13px;
+  min-width: 44px;
+}
+.log-tag {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.log-tag.orch { background: rgba(168, 85, 247, 0.25); color: #c084fc; border: 1px solid #9333ea; }
+.log-tag.a2a { background: rgba(56, 189, 248, 0.25); color: #38bdf8; border: 1px solid #0284c7; }
+.log-tag.mcp { background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #16a34a; }
+.log-text { color: #cbd5e1; word-break: break-word; }
+
+/* Mission Report Card */
+.report-card {
+  background: linear-gradient(180deg, rgba(20, 17, 36, 0.95) 0%, rgba(12, 10, 22, 0.98) 100%);
+  border: 1.5px solid #d4af37;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-top: 20px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(212, 175, 55, 0.25);
+  animation: fadeIn 0.4s ease;
+}
+.report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  margin-bottom: 16px;
+}
+.report-title-badge {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fcd34d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.report-btn-group {
+  display: flex;
+  gap: 8px;
+}
+.rpg-btn-sm {
+  background: rgba(30, 26, 54, 0.9);
+  border: 1px solid #5a4980;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-family: var(--font-thai);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.rpg-btn-sm:hover {
+  border-color: #d4af37;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+.report-question {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+.report-headline {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #fcd34d;
+  margin-bottom: 18px;
+}
+
+/* Metrics HUD */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.metric-box {
+  background: rgba(15, 12, 28, 0.85);
+  border: 1px solid #3d315b;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+.metric-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #38bdf8;
+}
+.metric-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.metric-value {
+  font-family: var(--font-tech);
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 4px 0 2px;
+}
+.metric-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Findings & Next Steps */
+.finding-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.severity-pill {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.severity-pill.critical { background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #ef4444; }
+.severity-pill.warning { background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid #f59e0b; }
+.severity-pill.info { background: rgba(56, 189, 248, 0.25); color: #38bdf8; border: 1px solid #0284c7; }
+
+.source-tag {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  color: #94a3b8;
+  border: 1px solid #475569;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.report-gaps {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+details.evidence-box {
+  margin-top: 16px;
+  background: rgba(10, 8, 20, 0.6);
+  border: 1px solid #332a4a;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+details.evidence-box summary {
+  cursor: pointer;
+  color: #a78bfa;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="arena-wrapper">
+  <!-- Top utility bar -->
+  <div class="top-nav">
+    <button class="audio-btn" id="sfx-toggle" title="เปิด/ปิดเสียงเอฟเฟกต์">
+      <span id="sfx-icon">🔊</span> SFX: ON
+    </button>
+    <span id="badge-mock" class="mode-badge" hidden>⚔️ ข้อมูลจำลอง (MOCK)</span>
+  </div>
+
+  <!-- MAIN HUD RPG FRAME -->
+  <header class="rpg-frame">
+    <div class="corner-gem-bl"></div>
+    <div class="corner-gem-br"></div>
+    
+    <!-- Title Plaque -->
+    <div class="title-plaque">
+      <div class="title-plaque-gem"></div>
+      <h1>A2A DIGITAL TWIN</h1>
+      <div class="title-plaque-gem"></div>
+    </div>
+
+    <!-- Search / Prompt Input Form -->
+    <form id="ask" autocomplete="off" class="search-row">
+      <div class="search-input-wrap">
+        <input 
+          id="q" 
+          type="text" 
+          maxlength="500" 
+          class="search-input"
+          placeholder="check client site shaw and issue report..." 
+          aria-label="คำถามระบบเครือข่าย">
+      </div>
+      <button class="submit-btn" id="go" type="submit">ส่งคำถาม</button>
+    </form>
+
+    <!-- Suggested Quest Chips -->
+    <div class="chips-row" id="chips"></div>
+    <div id="msg-toast" role="alert"></div>
+    <div id="sr-status" class="sr-only" aria-live="polite"></div>
+  </header>
+
+  <!-- COMMAND ARENA / BATTLEGROUND -->
+  <main class="arena-card">
+    <!-- SVG Mana Links & Arcane Circles Layer -->
+    <svg id="mana-links-svg" viewBox="0 0 1060 480" preserveAspectRatio="none">
+      <defs>
+        <!-- Gradients for lightning links -->
+        <linearGradient id="link-mist-grad" x1="50%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#38bdf8"/>
+          <stop offset="50%" stop-color="#22d3ee"/>
+          <stop offset="100%" stop-color="#4ade80"/>
+        </linearGradient>
+        <linearGradient id="link-central-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#c084fc"/>
+          <stop offset="50%" stop-color="#f43f5e"/>
+          <stop offset="100%" stop-color="#fb923c"/>
+        </linearGradient>
+        <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      <!-- Center Arcane Circles -->
+      <g opacity="0.25">
+        <circle cx="530" cy="240" r="210" fill="none" stroke="#7e22ce" stroke-width="1.5" stroke-dasharray="8 6"/>
+        <circle cx="530" cy="240" r="160" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 8"/>
+        <circle cx="530" cy="240" r="110" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+        <path d="M 530 30 L 530 450 M 320 240 L 740 240" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="2 4"/>
+      </g>
+
+      <!-- Mana Link Left (Orchestrator -> Mist) -->
+      <path id="path-mist" class="mana-link-path mana-link-glow" d="M 450 160 C 340 160, 260 170, 180 220" stroke="url(#link-mist-grad)"/>
+      <path id="path-mist-core" class="mana-link-path mana-link-core" d="M 450 160 C 340 160, 260 170, 180 220" stroke="#67e8f9"/>
+      
+      <!-- Mana Link Right (Orchestrator -> Central) -->
+      <path id="path-central" class="mana-link-path mana-link-glow" d="M 610 160 C 720 160, 800 170, 880 220" stroke="url(#link-central-grad)"/>
+      <path id="path-central-core" class="mana-link-path mana-link-core" d="M 610 160 C 720 160, 800 170, 880 220" stroke="#f472b6"/>
+
+      <!-- Floating Mana Link Badges -->
+      <g transform="translate(300, 155)">
+        <rect x="-42" y="-12" width="84" height="24" rx="6" fill="#131026" stroke="#0ea5e9" stroke-width="1.2"/>
+        <text class="mana-link-badge" x="0" y="4" text-anchor="middle">Mana Link</text>
+      </g>
+      <g transform="translate(760, 155)">
+        <rect x="-42" y="-12" width="84" height="24" rx="6" fill="#131026" stroke="#d946ef" stroke-width="1.2"/>
+        <text class="mana-link-badge" x="0" y="4" text-anchor="middle">Mana Link</text>
+      </g>
+
+      <!-- Particles Layer on Mana Paths -->
+      <g id="spark-layer"></g>
+    </svg>
+
+    <!-- 3 AGENT PODS (Left: Mist, Center: Orchestrator, Right: Central) -->
+    <div class="agents-grid">
+      
+      <!-- ================= LEFT: MIST AGENT ================= -->
+      <div class="agent-pod mist-pod">
+        <!-- Status Plaque -->
+        <div class="status-plaque status-idle" id="plaque-m">
+          <div class="status-header-text">
+            <span>STATUS:</span>
+            <span id="st-head-m">READY</span>
+            <span id="dot-m">🟢</span>
+          </div>
+          <div class="status-sub-text" id="bub-m">รอรับงาน</div>
+        </div>
+
+        <!-- Mist Avatar with aura -->
+        <div class="avatar-halo-wrap">
+          <div class="avatar-halo aura-green"></div>
+          <div class="avatar-img-box floating-anim" id="hero-m">
+            <img class="avatar-img" src="/assets/mist_agent.jpg" alt="Mist Agent Portrait">
+          </div>
+        </div>
+
+        <!-- Title & Subtitles -->
+        <h3 class="agent-title">Mist agent</h3>
+        <div class="agent-thai-name">ผู้เชี่ยวชาญ Mist</div>
+        <div class="agent-class">Class: Mist Elementalist</div>
+
+        <!-- RPG Stats Bar for Mist -->
+        <div class="rpg-stats-card">
+          <div class="stat-bar-row">
+            <span class="stat-label hp">HP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner hp-bar" id="hp-m" style="width: 100%;"></div></div>
+          </div>
+          <div class="stat-bar-row">
+            <span class="stat-label mp">MP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner green-bar" id="bar-m" style="width: 0%;"></div></div>
+          </div>
+          <div class="rpg-badge-details">
+            <span>Perception: 99</span>
+            <span>AP Cleansing: 94</span>
+          </div>
+        </div>
+
+        <!-- Mist MCP Tool Box -->
+        <div class="mcp-node-box" id="tool-m">
+          <img class="mcp-icon-img" src="/assets/mist_mcp.jpg" alt="Mist MCP Grimoire">
+          <div>
+            <div class="mcp-info-title">Mist MCP</div>
+            <div class="mcp-info-sub">เครื่องมือวิเคราะห์</div>
+            <div class="mcp-stats-pill" id="mcp-action-m">API Cloud Connected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CENTER: ORCHESTRATOR ================= -->
+      <div class="agent-pod orchestrator-pod">
+        <!-- Orchestrator Status Plaque -->
+        <div class="status-plaque status-idle" id="plaque-o">
+          <div class="status-header-text">
+            <span>STATUS:</span>
+            <span id="st-head-o">READY TO REPORT</span>
+            <span id="dot-o">🟢</span>
+          </div>
+          <div class="status-sub-text" id="bub-o">พร้อมรับคำถาม</div>
+        </div>
+
+        <!-- Orchestrator Avatar with aura -->
+        <div class="avatar-halo-wrap">
+          <div class="avatar-halo aura-purple"></div>
+          <div class="avatar-img-box floating-anim" id="hero-o">
+            <img class="avatar-img" src="/assets/orchestrator.jpg" alt="Orchestrator Portrait">
+          </div>
+        </div>
+
+        <!-- Title & Subtitles -->
+        <h2 class="agent-title">Orchestrator</h2>
+        <div class="agent-thai-name">ผู้จัดการ</div>
+        <div class="agent-class">Class: Grand Tactician</div>
+
+        <!-- RPG Stats Bar for Orchestrator -->
+        <div class="rpg-stats-card">
+          <div class="stat-bar-row">
+            <span class="stat-label hp">HP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner hp-bar" id="hp-o" style="width: 100%;"></div></div>
+          </div>
+          <div class="stat-bar-row">
+            <span class="stat-label mp">MP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner mp-bar" id="bar-o" style="width: 100%;"></div></div>
+          </div>
+          <div class="rpg-badge-details">
+            <span>HP: 10,000/10,000</span>
+            <span>Command: SS · Speed: MAX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= RIGHT: CENTRAL AGENT ================= -->
+      <div class="agent-pod central-pod">
+        <!-- Status Plaque -->
+        <div class="status-plaque status-idle" id="plaque-c">
+          <div class="status-header-text">
+            <span>STATUS:</span>
+            <span id="st-head-c">READY</span>
+            <span id="dot-c">🟢</span>
+          </div>
+          <div class="status-sub-text" id="bub-c">รอรับงาน</div>
+        </div>
+
+        <!-- Central Avatar with aura -->
+        <div class="avatar-halo-wrap">
+          <div class="avatar-halo aura-orange"></div>
+          <div class="avatar-img-box floating-anim" id="hero-c">
+            <img class="avatar-img" src="/assets/central_agent.jpg" alt="Central Agent Portrait">
+          </div>
+        </div>
+
+        <!-- Title & Subtitles -->
+        <h3 class="agent-title">Central agent</h3>
+        <div class="agent-thai-name">ผู้เชี่ยวชาญ Central</div>
+        <div class="agent-class">Class: Cloud Juggernaut</div>
+
+        <!-- RPG Stats Bar for Central -->
+        <div class="rpg-stats-card">
+          <div class="stat-bar-row">
+            <span class="stat-label hp">HP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner hp-bar" id="hp-c" style="width: 100%;"></div></div>
+          </div>
+          <div class="stat-bar-row">
+            <span class="stat-label mp">MP</span>
+            <div class="stat-bar-outer"><div class="stat-bar-inner mp-bar" id="bar-c" style="width: 0%;"></div></div>
+          </div>
+          <div class="rpg-badge-details">
+            <span>Armor: 98</span>
+            <span>Analysis: 98</span>
+          </div>
+        </div>
+
+        <!-- Central MCP Tool Box -->
+        <div class="mcp-node-box" id="tool-c">
+          <img class="mcp-icon-img" src="/assets/central_mcp.jpg" alt="Central MCP Heart Core">
+          <div>
+            <div class="mcp-info-title">Central MCP</div>
+            <div class="mcp-info-sub">เครื่องมือวิเคราะห์</div>
+            <div class="mcp-stats-pill" id="mcp-action-c">Central Cloud Analysis: 95</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- LIVE COMBAT LOG (กิจกรรมแบบสด) -->
+  <section class="logs-section">
+    <div class="section-header">
+      <h2>กิจกรรมแบบสด (Live Action Log)</h2>
+      <div class="section-header-line"></div>
+    </div>
+    <div id="log" class="log-box">
+      <div class="log-row">
+        <span class="log-time">+0.0s</span>
+        <span class="log-tag orch">SYSTEM</span>
+        <span class="log-text">ระบบ A2A Digital Twin พร้อมใช้งาน ส่งคำถามเพื่อเริ่มการวิเคราะห์</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION REPORT CONTAINER -->
+  <div id="report"></div>
+</div>
+
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+const LABEL = { mist: 'Mist agent', central: 'Central agent' };
+const KEY = { mist: 'm', central: 'c' };
+const PATH_IDS = { mist: 'path-mist', central: 'path-central' };
+
+// SFX Audio Synthesizer (Web Audio API)
+let audioCtx = null;
+let sfxEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+function playTone(freq, type = 'sine', duration = 0.15, vol = 0.1) {
+  if (!sfxEnabled) return;
+  try {
+    initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+function sfxClick() { playTone(540, 'triangle', 0.1, 0.08); }
+function sfxZap() { playTone(780, 'sawtooth', 0.18, 0.05); }
+function sfxFanfare() {
+  if (!sfxEnabled) return;
+  playTone(523, 'sine', 0.2, 0.1);
+  setTimeout(() => playTone(659, 'sine', 0.2, 0.1), 100);
+  setTimeout(() => playTone(784, 'sine', 0.35, 0.12), 200);
+}
+
+$('#sfx-toggle').addEventListener('click', () => {
+  sfxEnabled = !sfxEnabled;
+  $('#sfx-icon').textContent = sfxEnabled ? '🔊' : '🔇';
+  $('#sfx-toggle').innerHTML = `<span id="sfx-icon">${sfxEnabled ? '🔊' : '🔇'}</span> SFX: ${sfxEnabled ? 'ON' : 'OFF'}`;
+});
+
+// Ambient Star Dust Particles on Canvas
+const canvas = $('#bg-canvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = Array.from({ length: 45 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.5,
+    speed: Math.random() * 0.3 + 0.1,
+    alpha: Math.random() * 0.6 + 0.2,
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawBackground() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const t = Date.now() * 0.002;
+  for (const s of stars) {
+    s.y -= s.speed;
+    if (s.y < 0) { s.y = canvas.height; s.x = Math.random() * canvas.width; }
+    const a = s.alpha * (0.6 + 0.4 * Math.sin(t + s.phase));
+    ctx.fillStyle = `rgba(192, 132, 252, ${a})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  requestAnimationFrame(drawBackground);
+}
+drawBackground();
+
+// State mappings
+const ORCH_TEXT = {
+  planning: 'กำลังวางแผน...',
+  dispatching: 'แตกงานให้ทีม',
+  waiting: 'รอผลจากทีม',
+  merging: 'รวมผลและเขียน report',
+  done: 'รายงานพร้อมแล้ว',
+  error: 'เกิดข้อผิดพลาด'
+};
+const ORCH_STATE = {
+  planning: 'work',
+  dispatching: 'work',
+  waiting: 'wait',
+  merging: 'work',
+  done: 'done',
+  error: 'error'
+};
+const AGENT_TEXT = {
+  submitted: 'รับงานแล้ว',
+  working: 'กำลังทำงาน',
+  completed: 'เสร็จแล้ว',
+  failed: 'ล้มเหลว',
+  canceled: 'ถูกยกเลิก',
+  rejected: 'ปฏิเสธงาน',
+  'input-required': 'ต้องการข้อมูลเพิ่ม',
+  'auth-required': 'ต้องยืนยันตัวตน'
+};
+const AGENT_STATE = {
+  submitted: 'wait',
+  working: 'work',
+  completed: 'done',
+  failed: 'error',
+  canceled: 'error',
+  rejected: 'error',
+  'input-required': 'error',
+  'auth-required': 'error'
+};
+const SEV_TEXT = { critical: 'วิกฤต', warning: 'เตือน', info: 'ข้อมูล' };
+const SRC_TEXT = { mist: 'Mist', central: 'Central', both: 'ทั้งคู่' };
+
+const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
+
+let es = null, runId = '', token = 0, t0 = 0, lastSeen = 0, mock = false;
+let calls = { mist: 0, central: 0 };
+
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const kid of kids) if (kid != null && kid !== false) e.append(kid);
+  return e;
+}
+
+// Scene State Manipulations
+function setPodState(k, st, text, headText) {
+  const plaque = $('#plaque-' + k);
+  const dot = $('#dot-' + k);
+  const bub = $('#bub-' + k);
+  const stHead = $('#st-head-' + k);
+  
+  plaque.className = 'status-plaque status-' + st;
+  bub.textContent = text;
+  if (stHead && headText) stHead.textContent = headText;
+  
+  if (st === 'done') {
+    dot.textContent = '🟢';
+    if (stHead) stHead.textContent = 'ACTION COMPLETE';
+  } else if (st === 'work') {
+    dot.textContent = '🟡';
+    if (stHead) stHead.textContent = 'PROCESSING';
+  } else if (st === 'wait') {
+    dot.textContent = '🔵';
+    if (stHead) stHead.textContent = 'AWAITING RESPONSE';
+  } else if (st === 'error') {
+    dot.textContent = '🔴';
+    if (stHead) stHead.textContent = 'ALERT / ERROR';
+  } else {
+    dot.textContent = '🟢';
+    if (stHead) stHead.textContent = 'READY';
+  }
+  $('#sr-status').textContent = text;
+}
+
+function setManaBar(k, pct) {
+  const bar = $('#bar-' + k);
+  if (bar) bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+}
+
+function animateSpark(agent, reverse = false, color = '#67e8f9') {
+  const pathId = PATH_IDS[agent];
+  const p = document.getElementById(pathId);
+  if (!p) return Promise.resolve();
+  sfxZap();
+  
+  return new Promise((resolve) => {
+    const L = p.getTotalLength();
+    const spark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    spark.setAttribute('r', '6');
+    spark.setAttribute('fill', color);
+    spark.setAttribute('filter', 'url(#glow-filter)');
+    $('#spark-layer').appendChild(spark);
+
+    const startTime = performance.now();
+    const duration = 550;
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const u = reverse ? 1 - progress : progress;
+      const pt = p.getPointAtLength(u * L);
+      spark.setAttribute('cx', pt.x);
+      spark.setAttribute('cy', pt.y);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        spark.remove();
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function resetScene() {
+  token++;
+  $('#spark-layer').replaceChildren();
+  setPodState('o', 'idle', 'พร้อมรับคำถาม', 'READY TO REPORT');
+  setPodState('m', 'idle', 'รอรับงาน', 'READY');
+  setPodState('c', 'idle', 'รอรับงาน', 'READY');
+  setManaBar('m', 0);
+  setManaBar('c', 0);
+  setManaBar('o', 100);
+  $('#tool-m').classList.remove('active-tool');
+  $('#tool-c').classList.remove('active-tool');
+  $('#mcp-action-m').textContent = 'API Cloud Connected';
+  $('#mcp-action-c').textContent = 'Central Cloud Analysis: 95';
+  calls = { mist: 0, central: 0 };
+}
+
+// Log Display
+function addLog(tag, msg, cls = 'orch') {
+  const log = $('#log');
+  const secs = t0 ? ((Date.now() - t0) / 1000).toFixed(1) : '0.0';
+  const row = el('div', { class: 'log-row' },
+    el('span', { class: 'log-time' }, '+' + secs + 's'),
+    el('span', { class: 'log-tag ' + cls }, tag),
+    el('span', { class: 'log-text' }, msg)
+  );
+  log.prepend(row);
+}
+
+// Event Dispatcher
+function handle(ev) {
+  if (ev.id && ev.id <= lastSeen) return;
+  if (ev.id) lastSeen = ev.id;
+  t0 = t0 || ev.ts;
+  const agent = ev.agent, k = agent && KEY[agent];
+
+  switch (ev.type) {
+    case 'run.started':
+      mock = ev.mock;
+      addLog('ORCH', 'รับภารกิจ: ' + ev.question, 'orch');
+      setPodState('o', 'work', 'รับคำถามแล้ว', 'PLANNING MISSION');
+      setManaBar('o', 80);
+      break;
+
+    case 'orch.status':
+      setPodState('o', ORCH_STATE[ev.code], ORCH_TEXT[ev.code]);
+      addLog('ORCH', ORCH_TEXT[ev.code] + (ev.code === 'dispatching' && ev.detail ? ': ' + ev.detail.split(',').map((a) => LABEL[a] || a).join(', ') : ''), 'orch');
+      break;
+
+    case 'a2a.sent':
+      setPodState(k, 'wait', 'กำลังรับงาน...');
+      addLog('A2A', 'Mana Link → ส่งงานให้ ' + LABEL[agent] + ': ' + clip(ev.subtask, 120), 'a2a');
+      animateSpark(agent, false, agent === 'mist' ? '#38bdf8' : '#c084fc');
+      break;
+
+    case 'agent.status': {
+      const st = AGENT_STATE[ev.state] || 'work';
+      const text = AGENT_TEXT[ev.state] + (st === 'error' && ev.detail ? ': ' + clip(ev.detail, 22) : '');
+      setPodState(k, st, text);
+      if (ev.state === 'completed') setManaBar(k, 100);
+      addLog('A2A', LABEL[agent] + ' ➔ ' + AGENT_TEXT[ev.state] + (ev.detail ? ' (' + clip(ev.detail, 140) + ')' : ''), 'a2a');
+      break;
+    }
+
+    case 'agent.tool': {
+      const toolBox = $('#tool-' + k);
+      const mcpAction = $('#mcp-action-' + k);
+      if (ev.phase === 'call') {
+        calls[agent]++;
+        setManaBar(k, Math.round(90 * (1 - Math.exp(-calls[agent] / 3))));
+        setPodState(k, 'work', 'เรียก MCP: ' + clip(ev.tool, 22));
+        toolBox.classList.add('active-tool');
+        if (mcpAction) mcpAction.textContent = '⚡ ' + ev.tool;
+        sfxZap();
+      } else {
+        setTimeout(() => {
+          toolBox.classList.remove('active-tool');
+        }, 800);
+      }
+      const verb = ev.phase === 'call' ? 'ร่ายสกิล' : ev.phase === 'result' ? 'ได้รับข้อมูลจาก' : 'สกิลล้มเหลวที่';
+      addLog('MCP', LABEL[agent] + ' ' + verb + ' ' + ev.tool + (ev.detail ? ' · ' + clip(ev.detail, 120) : ''), 'mcp');
+      break;
+    }
+
+    case 'a2a.result':
+      if (ev.ok) {
+        animateSpark(agent, true, agent === 'mist' ? '#4ade80' : '#fb923c');
+      }
+      addLog('A2A', ev.ok ? LABEL[agent] + ' ส่งผลตอบกลับให้ Orchestrator' : 'ไม่ได้รับผลจาก ' + LABEL[agent], 'a2a');
+      break;
+
+    case 'run.report':
+      sfxFanfare();
+      setPodState('o', 'done', 'รายงานพร้อมแล้ว', 'MISSION COMPLETE');
+      setPodState('m', 'done', 'เสร็จสิ้นภารกิจ', 'ACTION COMPLETE');
+      setPodState('c', 'done', 'เสร็จสิ้นภารกิจ', 'ACTION COMPLETE');
+      addLog('ORCH', 'สรุปรายงานผลการวิเคราะห์เรียบร้อย', 'orch');
+      renderReport(ev.report);
+      finish();
+      break;
+
+    case 'run.error':
+      setPodState('o', 'error', 'เกิดข้อผิดพลาด', 'MISSION FAILED');
+      addLog('ORCH', 'เกิดข้อผิดพลาด: ' + ev.message, 'orch');
+      $('#msg-toast').textContent = 'ทำงานไม่สำเร็จ: ' + ev.message;
+      finish();
+      break;
+  }
+}
+
+function finish() {
+  if (es) { es.close(); es = null; }
+  $('#go').textContent = 'ส่งคำถาม';
+}
+
+// Markdown formatting helper
+function reportMarkdown(r, q) {
+  const L = ['# รายงานผลลัพธ์ (MISSION REPORT)' + (r.mock ? ' (ข้อมูลจำลอง)' : ''), '', 'คำถาม: ' + q, '', r.headline, ''];
+  if (r.metrics && r.metrics.length) {
+    L.push('## ตัวเลขสำคัญ');
+    r.metrics.forEach((m) => L.push('- ' + m.label + ': ' + m.value + (m.sub ? ' (' + m.sub + ')' : '')));
+    L.push('');
+  }
+  if (r.findings && r.findings.length) {
+    L.push('## สิ่งที่พบ');
+    r.findings.forEach((f) => L.push('- [' + SEV_TEXT[f.severity] + '] (' + SRC_TEXT[f.source] + ') ' + f.text));
+    L.push('');
+  }
+  if (r.next && r.next.length) {
+    L.push('## แผนรับมือและข้อเสนอแนะ');
+    r.next.forEach((n) => L.push('- ' + n));
+    L.push('');
+  }
+  if (r.gaps && r.gaps.length) {
+    L.push('## ข้อมูลที่ขาดหาย');
+    r.gaps.forEach((g) => L.push('- ' + g));
+    L.push('');
+  }
+  if (r.toolCalls && r.toolCalls.length) {
+    L.push('## รายการ MCP Tools ที่ใช้งาน');
+    r.toolCalls.forEach((t) => L.push('- ' + LABEL[t.agent] + ': ' + t.tool + (t.ok ? '' : ' (ล้มเหลว)')));
+  }
+  return L.join('\n');
+}
+
+function copyButton(label, getText) {
+  const b = el('button', { class: 'rpg-btn-sm', type: 'button' }, label);
+  b.addEventListener('click', async () => {
+    sfxClick();
+    try {
+      await navigator.clipboard.writeText(getText());
+      b.textContent = 'คัดลอกแล้ว ✔';
+    } catch {
+      b.textContent = 'คัดลอกไม่ได้';
+    }
+    setTimeout(() => (b.textContent = label), 1500);
+  });
+  return b;
+}
+
+// Render Rich Mission Report
+function renderReport(r) {
+  const q = $('#q').value.trim();
+  const card = el('div', { class: 'report-card' });
+
+  // Header
+  const head = el('div', { class: 'report-head' },
+    el('div', { class: 'report-title-badge' },
+      el('span', {}, '🏆 MISSION REPORT / รายงานผลลัพธ์'),
+      r.mock && el('span', { class: 'mode-badge' }, 'ข้อมูลจำลอง')
+    ),
+    el('div', { class: 'report-btn-group' },
+      copyButton('📋 คัดลอก Markdown', () => reportMarkdown(r, q)),
+      copyButton('🔗 คัดลอกลิงก์', () => location.origin + location.pathname + '#run=' + runId)
+    )
+  );
+  card.append(head);
+
+  // Question & Headline
+  card.append(el('div', { class: 'report-question' }, 'คำถาม: ' + q));
+  card.append(el('p', { class: 'report-headline' }, r.headline));
+
+  // Metrics Grid
+  if (r.metrics && r.metrics.length) {
+    const grid = el('div', { class: 'metrics-grid' });
+    r.metrics.forEach((m) => {
+      grid.append(el('div', { class: 'metric-box' },
+        el('div', { class: 'metric-label' }, m.label),
+        el('div', { class: 'metric-value' }, m.value),
+        m.sub && el('div', { class: 'metric-sub' }, m.sub)
+      ));
+    });
+    card.append(grid);
+  }
+
+  // Findings
+  if (r.findings && r.findings.length) {
+    const sec = el('div', { style: 'margin-bottom: 18px;' });
+    sec.append(el('h3', { style: 'font-size: 14px; color: #fcd34d; margin-bottom: 8px;' }, '🔍 สิ่งที่ตรวจพบ (Findings)'));
+    r.findings.forEach((f) => {
+      sec.append(el('div', { class: 'finding-row' },
+        el('span', { class: 'severity-pill ' + f.severity }, SEV_TEXT[f.severity] || f.severity),
+        el('span', { class: 'source-tag' }, SRC_TEXT[f.source] || f.source),
+        el('span', { class: 'log-text' }, f.text)
+      ));
+    });
+    card.append(sec);
+  }
+
+  // Next steps / Recommendations
+  if (r.next && r.next.length) {
+    const sec = el('div', { style: 'margin-bottom: 18px;' });
+    sec.append(el('h3', { style: 'font-size: 14px; color: #38bdf8; margin-bottom: 8px;' }, '🛡️ แผนรับมือและข้อเสนอแนะ (Tactical Action Plan)'));
+    r.next.forEach((n) => {
+      sec.append(el('div', { class: 'finding-row' },
+        el('span', { style: 'color: #38bdf8;' }, '▶'),
+        el('span', { class: 'log-text' }, n)
+      ));
+    });
+    card.append(sec);
+  }
+
+  // Gaps
+  if (r.gaps && r.gaps.length) {
+    card.append(el('div', { class: 'report-gaps' }, '⚠️ ข้อมูลที่ยังขาด: ' + r.gaps.join(' · ')));
+  }
+
+  // Evidence Tool Calls
+  if (r.toolCalls && r.toolCalls.length) {
+    const det = el('details', { class: 'evidence-box' },
+      el('summary', {}, '📜 หลักฐานการตรวจสอบ: MCP Tools ที่ถูกเรียก (' + r.toolCalls.length + ' รายการ)'),
+      ...r.toolCalls.map((t) => el('div', { class: 'log-row' },
+        el('span', { class: 'log-tag mcp' }, LABEL[t.agent] || t.agent),
+        el('span', { class: 'log-text' }, t.tool + (t.ok ? ' [สำเร็จ]' : ' [ล้มเหลว]'))
+      ))
+    );
+    card.append(det);
+  }
+
+  $('#report').replaceChildren(card);
+  card.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Watching run events
+function watch(id) {
+  if (es) es.close();
+  runId = id; lastSeen = 0; t0 = 0;
+  $('#go').textContent = 'กำลังทำงาน...';
+  es = new EventSource('/api/runs/' + encodeURIComponent(id) + '/events');
+  es.onmessage = (m) => {
+    try { handle(JSON.parse(m.data)); }
+    catch (e) { console.error(e); }
+  };
+  es.onerror = () => {
+    if (es && es.readyState === EventSource.CLOSED) {
+      es = null;
+      $('#go').textContent = 'ส่งคำถาม';
+    }
+  };
+}
+
+async function ask(question) {
+  sfxClick();
+  $('#msg-toast').textContent = '';
+  resetScene();
+  $('#log').replaceChildren(
+    el('div', { class: 'log-row' },
+      el('span', { class: 'log-time' }, '+0.0s'),
+      el('span', { class: 'log-tag orch' }, 'START'),
+      el('span', { class: 'log-text' }, 'กำลังประสานงานทีม A2A Agents: "' + question + '"')
+    )
+  );
+  $('#report').replaceChildren();
+
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || res.statusText);
+    history.replaceState(null, '', '#run=' + body.runId);
+    watch(body.runId);
+  } catch (e) {
+    $('#msg-toast').textContent = 'ส่งคำถามไม่ได้: ' + e.message;
+  }
+}
+
+// Suggested prompt buttons
+const SUGGESTIONS = [
+  'สรุปสุขภาพเครือข่ายทุกไซต์วันนี้',
+  'หา client ที่มีปัญหา Wi-Fi มากสุดวันนี้',
+  'มี AP ออฟไลน์ที่ไซต์ไหนบ้าง'
+];
+$('#chips').append(...SUGGESTIONS.map((s, idx) => {
+  const b = el('button', {
+    type: 'button',
+    class: 'quest-chip' + (idx === 0 ? ' active-quest' : '')
+  }, s);
+  b.addEventListener('click', () => {
+    sfxClick();
+    $('#q').value = s;
+    ask(s);
+  });
+  return b;
+}));
+
+$('#ask').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = $('#q').value.trim();
+  if (q.length < 3) {
+    $('#msg-toast').textContent = 'พิมพ์คำถามอย่างน้อย 3 ตัวอักษร';
+    return;
+  }
+  ask(q);
+});
+
+fetch('/api/config')
+  .then((r) => r.json())
+  .then((c) => { $('#badge-mock').hidden = !c.mock; })
+  .catch(() => {});
+
+// Replay existing run if #run=... in URL
+const m = location.hash.match(/^#run=([\w-]+)$/);
+if (m) {
+  fetch('/api/runs/' + m[1])
+    .then((r) => (r.ok ? r.json() : null))
+    .then((snap) => {
+      if (!snap) {
+        $('#msg-toast').textContent = 'ไม่พบการทำงานนี้ อาจหมดอายุหลังเซิร์ฟเวอร์รีสตาร์ท';
+        return;
+      }
+      $('#q').value = snap.question;
+      watch(m[1]);
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "name": "a2a-twin",
+  "version": "0.1.0",
+  "description": "A2A digital twin for Mist + Central: orchestrator and two analyst agents with a live dashboard",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/start.js",
+    "dev": "tsx src/start.ts",
+    "mock": "tsx src/start-mock.ts",
+    "test:mock": "E2E_MODE=mock tsx test/e2e.ts",
+    "test:real": "E2E_MODE=real tsx test/e2e.ts",
+    "test": "npm run test:mock && npm run test:real && npm run test:sdk",
+    "check": "tsx src/check.ts",
+    "check:built": "node dist/check.js",
+    "test:sdk": "E2E_MODE=sdk tsx test/e2e.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@a2a-js/sdk": "^1.3.0",
+    "@anthropic-ai/claude-agent-sdk": "^0.3.301",
+    "@anthropic-ai/sdk": "^0.135.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "express": "^5.3.0",
+    "uuid": "^14.0.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.12"
+  }
+}
